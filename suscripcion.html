@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Suscripción Premium - English Class</title>
+  <!-- Chosen Palette: Fun & Vibrant (based on user's CSS) -->
+  <!-- Application Structure Plan: The page is designed as a conversion funnel with an added interactive layer. The primary structure features a centered "Premium Plan" card detailing benefits. A key new section, a dynamic goal-oriented motivator, is added below it. The core user flow is: 1. See Static Benefits -> 2. Optionally, enter a personal goal -> 3. Get a personalized, AI-generated message encouraging subscription based on that goal -> 4. Click the "Obtener Premium" button, which opens a modal for a manual, simulated payment. This new structure combines a traditional sales approach with a highly personalized, AI-powered nudge to increase conversion by directly addressing the user's motivation. -->
+  <!-- Visualization & Content Choices: 1. Subscription Benefits -> Goal: Persuade -> Viz: Styled List in a Feature Card -> Interaction: Static Display -> Justification: Clearly communicates the value proposition. Method: HTML/CSS. 2. Payment Flow -> Goal: Transact (Simulated) -> Viz: Modal Window -> Interaction: Button click opens modal, copy button for phone number, input for code, verify button. -> Justification: A guided, step-by-step process that feels interactive. Library/Method: Vanilla JS for modal and localStorage. 3. Gemini-Powered Motivator -> Goal: Engage & Personalize -> Viz: Textarea for user input and a dynamic text block for AI response -> Interaction: User types a goal, clicks a button, and sees a personalized message. -> Justification: Creates a unique, compelling reason to subscribe by connecting the user's personal goals with the product's value, powered by LLM. Library/Method: Fetch API to call the Gemini API for text generation. -->
+  <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+  <style>
+    :root {
+      --primary-color: #4361ee;
+      --secondary-color: #3a0ca3;
+      --accent-color: #f72585;
+      --light-color: #ffffff;
+      --text-color: #2b2d42;
+      --fun-color: #4cc9f0;
+    }
+    
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    
+    body {
+      font-family: 'Poppins', sans-serif;
+      line-height: 1.6;
+      color: var(--text-color);
+      background-color: #f8f9fa;
+    }
+    
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap');
+    
+    header {
+      background: linear-gradient(135deg, var(--primary-color), var(--fun-color));
+      color: var(--light-color);
+      padding: 1rem 0;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+    }
+    
+    .header-container {
+      max-width: 1200px; margin: 0 auto; padding: 0 20px;
+      display: flex; flex-direction: column; align-items: center;
+    }
+    
+    .logo-container { display: flex; align-items: center; margin-bottom: 1rem; }
+    .logo-container img { height: 60px; margin-right: 15px; filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.2)); }
+    .logo-container h1 { font-size: 2.2rem; text-shadow: 2px 2px 4px rgba(0,0,0,0.2); }
+    nav ul { display: flex; list-style: none; flex-wrap: wrap; justify-content: center; gap: 10px; }
+    nav li { margin: 0 5px; }
+    nav a {
+      color: var(--light-color); text-decoration: none; font-weight: 700;
+      padding: 8px 15px; border-radius: 30px; transition: all 0.3s ease;
+      background-color: rgba(255, 255, 255, 0.2); backdrop-filter: blur(5px);
+    }
+    nav a:hover {
+      background-color: var(--accent-color); transform: translateY(-3px);
+      box-shadow: 0 5px 15px rgba(247, 37, 133, 0.4);
+    }
+
+    .container { max-width: 1200px; margin: 0 auto; padding: 3rem 20px; }
+
+    .section-title {
+      text-align: center; margin-bottom: 3rem; color: var(--secondary-color);
+      font-size: 2.2rem; position: relative; display: inline-block;
+      left: 50%; transform: translateX(-50%);
+    }
+    .section-title::after {
+      content: ""; position: absolute; bottom: -15px; left: 0;
+      width: 100%; height: 4px;
+      background: linear-gradient(90deg, var(--accent-color), var(--fun-color));
+      border-radius: 2px;
+    }
+
+    .pricing-card {
+      max-width: 500px; margin: 2rem auto; background-color: var(--light-color);
+      border-radius: 20px; box-shadow: 0 15px 30px rgba(0,0,0,0.1);
+      padding: 2.5rem; text-align: center; border-top: 8px solid var(--primary-color);
+    }
+    .pricing-card h3 { font-size: 2rem; color: var(--secondary-color); margin-bottom: 1rem; }
+    .pricing-card .price { font-size: 3.5rem; font-weight: 700; color: var(--primary-color); margin-bottom: 0.5rem; }
+    .pricing-card .price-term { font-size: 1rem; color: #6c757d; margin-bottom: 2rem; }
+    .features-list { list-style: none; margin-bottom: 2.5rem; text-align: left; }
+    .features-list li { margin-bottom: 1rem; display: flex; align-items: center; }
+    .features-list li::before {
+      content: '✔'; color: var(--fun-color); font-size: 1.5rem;
+      margin-right: 15px;
+    }
+    
+    .btn {
+      display: inline-block; background-color: var(--accent-color); color: var(--light-color);
+      padding: 15px 40px; border-radius: 50px; text-decoration: none; font-weight: bold;
+      font-size: 1.1rem; transition: all 0.4s ease;
+      box-shadow: 0 8px 15px rgba(247, 37, 133, 0.3);
+      position: relative; overflow: hidden; border: none; cursor: pointer;
+    }
+    .btn:hover {
+      transform: translateY(-5px); box-shadow: 0 15px 20px rgba(247, 37, 133, 0.4);
+      background-color: #ff0676;
+    }
+    
+    /* Modal Styles */
+    .modal-backdrop {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background-color: rgba(0,0,0,0.6); z-index: 2000;
+      display: flex; align-items: center; justify-content: center;
+      opacity: 0; pointer-events: none; transition: opacity 0.3s ease;
+    }
+    .modal-backdrop.visible { opacity: 1; pointer-events: auto; }
+    .modal-content {
+      background: white; padding: 2rem; border-radius: 15px;
+      width: 90%; max-width: 450px; box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+      transform: scale(0.95); transition: transform 0.3s ease;
+    }
+    .modal-backdrop.visible .modal-content { transform: scale(1); }
+    .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
+    .modal-header h4 { font-size: 1.5rem; color: var(--secondary-color); }
+    .modal-close { font-size: 2rem; border: none; background: none; cursor: pointer; color: #888; }
+    
+    .payment-instructions p { margin-bottom: 1rem; }
+    .daviplata-box {
+      background: #f1f5f9; border: 2px dashed #cbd5e1;
+      padding: 1rem; border-radius: 8px; display: flex;
+      justify-content: space-between; align-items: center; margin: 1rem 0;
+    }
+    .daviplata-box span { font-size: 1.2rem; font-weight: 600; letter-spacing: 1px; }
+    .copy-btn {
+      background: var(--fun-color); color: white; border: none;
+      padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer;
+      font-weight: 600; transition: background 0.2s;
+    }
+    .copy-btn:hover { background: var(--primary-color); }
+
+    .form-group { margin-top: 1.5rem; }
+    .form-group label { display: block; margin-bottom: 0.5rem; font-weight: 600; }
+    .form-group input {
+      width: 100%; padding: 0.75rem; border: 1px solid #ccc;
+      border-radius: 8px; font-size: 1rem;
+    }
+
+    footer {
+      background: linear-gradient(135deg, var(--secondary-color), #1a1a2e);
+      color: var(--light-color); padding: 3rem 0; text-align: center;
+    }
+
+    .gemini-section {
+        background: #f1f5f9; padding: 2rem; border-radius: 20px;
+        margin-top: 3rem; text-align: center;
+    }
+    .gemini-section h4 { font-size: 1.5rem; color: var(--primary-color); margin-bottom: 1rem; }
+    .gemini-section textarea {
+        width: 100%; height: 100px; padding: 1rem; border-radius: 10px;
+        border: 2px solid #ddd; resize: vertical; font-size: 1rem;
+        transition: border-color 0.3s;
+    }
+    .gemini-section textarea:focus { border-color: var(--accent-color); outline: none; }
+    .gemini-output {
+        margin-top: 1.5rem;
+        background: var(--light-color);
+        padding: 1.5rem;
+        border-radius: 10px;
+        box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
+        color: var(--text-color);
+        font-style: italic;
+        min-height: 50px;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="header-container">
+      <div class="logo-container">
+        <img src="https://www.svgrepo.com/show/305886/english-flag.svg" alt="English Class Logo">
+        <h1>English Class</h1>
+      </div>
+      <nav>
+        <ul>
+          <li><a href="index.html">Inicio</a></li>
+          <li><a href="cursos.html">Cursos</a></li>
+          <li><a href="games.html">Juegos</a></li>
+          <li><a href="videos.html">Videos</a></li>
+          <li><a href="suscripcion.html">Suscripción</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <section>
+      <h2 class="section-title">Desbloquea Todo el Contenido</h2>
+      <div class="pricing-card">
+        <h3>Plan Premium</h3>
+        <div class="price">$10,000</div>
+        <div class="price-term">Pago único / Acceso vitalicio</div>
+        <ul class="features-list">
+          <li>Acceso ilimitado a todos los cursos</li>
+          <li>Todos los juegos y videos desbloqueados</li>
+          <li>Material de estudio exclusivo</li>
+          <li>Nuevas lecciones cada semana</li>
+        </ul>
+        <button id="get-premium-btn" class="btn">Obtener Premium</button>
+      </div>
+    </section>
+
+    <div class="gemini-section">
+        <h4>✨ ¿Por qué quieres aprender inglés?</h4>
+        <p>Cuéntanos tus metas, ya sea viajar, conseguir un mejor trabajo o hablar con fluidez.</p>
+        <textarea id="goal-input" placeholder="Ej: Quiero aprender inglés para viajar por el mundo y conocer gente nueva."></textarea>
+        <button id="generate-goal-btn" class="btn" style="margin-top: 1.5rem; padding: 10px 25px; font-size: 1rem;">
+            Generar Mensaje Personalizado ✨
+        </button>
+        <div id="goal-output" class="gemini-output">
+            <p>Tu motivación es el primer paso. ¡Cuéntanos la tuya para que podamos ayudarte a alcanzarla!</p>
+        </div>
+    </div>
+  </main>
+  
+  <div id="payment-modal" class="modal-backdrop">
+      <div class="modal-content">
+          <div class="modal-header">
+              <h4>Instrucciones de Pago</h4>
+              <button id="close-modal-btn" class="modal-close">&times;</button>
+          </div>
+          <div class="payment-instructions">
+              <p>Para activar tu cuenta, realiza una transferencia a la siguiente cuenta de Daviplata:</p>
+              <div class="daviplata-box">
+                  <span id="daviplata-number">3156119891</span>
+                  <button id="copy-number-btn" class="copy-btn">Copiar</button>
+              </div>
+              <p>Una vez realizado el pago, ingresa el <strong>código de confirmación</strong> o número de transacción que recibiste para verificar.</p>
+              <div class="form-group">
+                  <label for="confirmation-code">Código de Confirmación</label>
+                  <input type="text" id="confirmation-code" placeholder="Ej: 123456">
+              </div>
+              <button id="verify-payment-btn" class="btn" style="width: 100%; margin-top: 1.5rem;">Verificar Pago</button>
+          </div>
+      </div>
+  </div>
+
+  <footer>
+    <p>&copy; 2025 English Class. Todos los derechos reservados.</p>
+  </footer>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const getPremiumBtn = document.getElementById('get-premium-btn');
+      const paymentModal = document.getElementById('payment-modal');
+      const closeModalBtn = document.getElementById('close-modal-btn');
+      const copyNumberBtn = document.getElementById('copy-number-btn');
+      const daviplataNumber = document.getElementById('daviplata-number').innerText;
+      const verifyPaymentBtn = document.getElementById('verify-payment-btn');
+      const confirmationCodeInput = document.getElementById('confirmation-code');
+      
+      const generateGoalBtn = document.getElementById('generate-goal-btn');
+      const goalInput = document.getElementById('goal-input');
+      const goalOutput = document.getElementById('goal-output');
+
+      getPremiumBtn.addEventListener('click', () => {
+        paymentModal.classList.add('visible');
+      });
+
+      closeModalBtn.addEventListener('click', () => {
+        paymentModal.classList.remove('visible');
+      });
+      
+      paymentModal.addEventListener('click', (e) => {
+        if (e.target === paymentModal) {
+          paymentModal.classList.remove('visible');
+        }
+      });
+
+      copyNumberBtn.addEventListener('click', () => {
+        navigator.clipboard.writeText(daviplataNumber).then(() => {
+          copyNumberBtn.innerText = '¡Copiado!';
+          setTimeout(() => {
+            copyNumberBtn.innerText = 'Copiar';
+          }, 2000);
+        });
+      });
+      
+      verifyPaymentBtn.addEventListener('click', () => {
+          const code = confirmationCodeInput.value;
+          if (code && code.length >= 5) {
+              // Simulación de verificación exitosa
+              localStorage.setItem('isPremium', 'true');
+              verifyPaymentBtn.disabled = true;
+              verifyPaymentBtn.innerText = 'Redirigiendo...';
+              
+              const messageBox = document.createElement('div');
+              messageBox.style.cssText = `
+                position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+                background-color: white; padding: 2rem; border-radius: 10px;
+                box-shadow: 0 5px 15px rgba(0,0,0,0.2); z-index: 3000;
+                text-align: center;
+              `;
+              messageBox.innerHTML = `
+                <p style="font-size: 1.2rem; margin-bottom: 1rem;">¡Pago verificado con éxito! 🎉</p>
+                <p>Ahora tienes acceso a todo el contenido premium.</p>
+              `;
+              document.body.appendChild(messageBox);
+              
+              setTimeout(() => {
+                  window.location.href = 'index.html';
+              }, 2000);
+          } else {
+              const messageBox = document.createElement('div');
+              messageBox.style.cssText = `
+                position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+                background-color: white; padding: 2rem; border-radius: 10px;
+                box-shadow: 0 5px 15px rgba(0,0,0,0.2); z-index: 3000;
+                text-align: center;
+              `;
+              messageBox.innerHTML = `
+                <p style="font-size: 1.2rem; color: var(--accent-color); margin-bottom: 1rem;">Error</p>
+                <p>Por favor, ingresa un código de confirmación válido.</p>
+              `;
+              document.body.appendChild(messageBox);
+              setTimeout(() => {
+                document.body.removeChild(messageBox);
+              }, 2000);
+          }
+      });
+
+      // Gemini API Integration
+      generateGoalBtn.addEventListener('click', async () => {
+          const userGoal = goalInput.value.trim();
+          if (userGoal.length < 10) {
+              goalOutput.innerHTML = `<p style="color: red;">Por favor, describe tu objetivo con un poco más de detalle.</p>`;
+              return;
+          }
+
+          goalOutput.innerHTML = `<p>Generando tu mensaje... ✨</p>`;
+          goalOutput.style.fontStyle = 'normal';
+
+          const systemPrompt = `Actúa como un profesor de inglés muy motivador y amigable. Tu tarea es generar un mensaje breve que anime al usuario a suscribirse a la clase de inglés. El mensaje debe ser personalizado, conectando directamente el objetivo del usuario con los beneficios de la suscripción (acceso ilimitado a cursos, juegos, videos y nuevo material). Mantén un tono optimista y lleno de energía. Responde solo con el mensaje, sin saludos ni despedidas. La respuesta debe ser en español.`;
+          const userQuery = `Mi objetivo para aprender inglés es: ${userGoal}`;
+          const apiKey = "";
+          const apiUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=" + apiKey;
+
+          const payload = {
+              contents: [{ parts: [{ text: userQuery }] }],
+              systemInstruction: { parts: [{ text: systemPrompt }] }
+          };
+
+          try {
+              const response = await fetch(apiUrl, {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify(payload)
+              });
+              
+              if (!response.ok) {
+                const errorData = await response.json();
+                console.error('API Error:', errorData);
+                goalOutput.innerHTML = `<p style="color: red;">Ocurrió un error. Por favor, inténtalo de nuevo.</p>`;
+                return;
+              }
+
+              const result = await response.json();
+              const generatedText = result?.candidates?.[0]?.content?.parts?.[0]?.text || 'No se pudo generar el mensaje. Intenta con un objetivo diferente.';
+              
+              goalOutput.innerHTML = `<p>${generatedText}</p>`;
+              goalOutput.style.fontStyle = 'normal';
+
+          } catch (error) {
+              console.error('Fetch Error:', error);
+              goalOutput.innerHTML = `<p style="color: red;">Hubo un problema de conexión. Revisa tu red e inténtalo de nuevo.</p>`;
+              goalOutput.style.fontStyle = 'normal';
+          }
+      });
+    });
+  </script>
+</body>
+</html>
