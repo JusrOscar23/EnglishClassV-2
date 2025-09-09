@@ -1,0 +1,798 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>English Class - Juego de Memoria</title>
+  <style>
+    :root {
+      --primary-color: #4361ee;
+      --secondary-color: #3a0ca3;
+      --accent-color: #f72585;
+      --light-color: #ffffff;
+      --text-color: #2b2d42;
+      --fun-color: #4cc9f0;
+    }
+    
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    
+    body {
+      font-family: Arial, sans-serif;
+      line-height: 1.6;
+      color: var(--text-color);
+      background-color: #f8f9fa;
+    }
+    
+    header {
+      background: linear-gradient(135deg, var(--primary-color), var(--fun-color));
+      color: var(--light-color);
+      padding: 1rem 0;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    
+    .header-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    
+    .logo-container {
+      display: flex;
+      align-items: center;
+      margin-bottom: 1rem;
+    }
+    
+    .logo-container img {
+      height: 60px;
+      margin-right: 15px;
+      filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.2));
+    }
+    
+    .logo-container h1 {
+      font-size: 2.2rem;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+    }
+    
+    nav ul {
+      display: flex;
+      list-style: none;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 10px;
+    }
+    
+    nav li {
+      margin: 0 5px;
+    }
+    
+    nav a {
+      color: var(--light-color);
+      text-decoration: none;
+      font-weight: 700;
+      padding: 8px 15px;
+      border-radius: 30px;
+      transition: all 0.3s ease;
+      background-color: rgba(255, 255, 255, 0.2);
+      backdrop-filter: blur(5px);
+    }
+    
+    nav a:hover {
+      background-color: var(--accent-color);
+      transform: translateY(-3px);
+      box-shadow: 0 5px 15px rgba(247, 37, 133, 0.4);
+    }
+    
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 3rem 20px;
+    }
+    
+    .section-title {
+      text-align: center;
+      margin-bottom: 3rem;
+      color: var(--secondary-color);
+      font-size: 2.2rem;
+      position: relative;
+    }
+    
+    .section-title::after {
+      content: "";
+      position: absolute;
+      bottom: -15px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 80px;
+      height: 4px;
+      background: linear-gradient(90deg, var(--accent-color), var(--fun-color));
+      border-radius: 2px;
+    }
+    
+    .memory-game {
+      max-width: 800px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 15px;
+      perspective: 1000px;
+    }
+    
+    .memory-card {
+      position: relative;
+      height: 150px;
+      transform-style: preserve-3d;
+      transition: transform 0.5s;
+      cursor: pointer;
+      border-radius: 10px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+    
+    .memory-card:active {
+      transform: scale(0.97);
+    }
+    
+    .memory-card.flip {
+      transform: rotateY(180deg);
+    }
+    
+    .front-face, .back-face {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      backface-visibility: hidden;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      font-weight: bold;
+      padding: 20px;
+      text-align: center;
+    }
+    
+    .front-face {
+      background: linear-gradient(45deg, var(--primary-color), var(--fun-color));
+      color: white;
+      transform: rotateY(180deg);
+    }
+    
+    .back-face {
+      background: white;
+      color: var(--secondary-color);
+      border: 3px solid var(--fun-color);
+    }
+    
+    .game-container {
+      background-color: white;
+      border-radius: 15px;
+      padding: 2rem;
+      margin: 3rem 0;
+      box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+    }
+    
+    .game-header {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+    
+    .game-header h2 {
+      color: var(--accent-color);
+      font-size: 1.8rem;
+      margin-bottom: 1rem;
+    }
+    
+    .game-stats {
+      display: flex;
+      justify-content: space-around;
+      margin-bottom: 1.5rem;
+      font-weight: bold;
+    }
+    
+    .game-stats div {
+      background-color: var(--fun-color);
+      color: white;
+      padding: 8px 15px;
+      border-radius: 20px;
+      min-width: 100px;
+      text-align: center;
+    }
+    
+    .game-controls {
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+      margin-top: 2rem;
+    }
+    
+    .game-btn {
+      background-color: var(--accent-color);
+      color: white;
+      border: none;
+      padding: 10px 25px;
+      border-radius: 30px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: all 0.3s;
+      font-family: Arial, sans-serif;
+      font-size: 1rem;
+    }
+    
+    .game-btn:hover {
+      background-color: #ff0676;
+      transform: translateY(-3px);
+      box-shadow: 0 5px 15px rgba(247, 37, 133, 0.3);
+    }
+    
+    .celebration {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0,0,0,0.8);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      display: none;
+    }
+    
+    .celebration h2 {
+      color: white;
+      font-size: 3rem;
+      margin-bottom: 2rem;
+      text-align: center;
+      animation: bounce 1s infinite;
+    }
+    
+    @keyframes bounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-20px); }
+    }
+    
+    .confetti {
+      position: absolute;
+      width: 10px;
+      height: 10px;
+      background-color: var(--accent-color);
+      animation: confetti-fall 5s linear forwards;
+    }
+    
+    @keyframes confetti-fall {
+      to { transform: translateY(100vh); }
+    }
+    
+    .hints-container {
+      background-color: #f0f8ff;
+      border-radius: 10px;
+      padding: 1.5rem;
+      margin: 2rem 0;
+      border: 2px dashed var(--primary-color);
+    }
+    
+    .hints-container h3 {
+      color: var(--secondary-color);
+      margin-bottom: 1rem;
+      text-align: center;
+    }
+    
+    .hints-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 10px;
+    }
+    
+    .hint-item {
+      background-color: white;
+      padding: 10px;
+      border-radius: 8px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    
+    .start-screen {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(67, 97, 238, 0.9);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 2000;
+    }
+    
+    .start-screen h2 {
+      color: white;
+      font-size: 2.5rem;
+      margin-bottom: 2rem;
+      text-align: center;
+    }
+    
+    .start-btn {
+      background-color: var(--accent-color);
+      color: white;
+      border: none;
+      padding: 15px 40px;
+      border-radius: 30px;
+      cursor: pointer;
+      font-weight: bold;
+      font-size: 1.5rem;
+      transition: all 0.3s;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    }
+    
+    .start-btn:hover {
+      background-color: #ff0676;
+      transform: translateY(-5px);
+      box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+    }
+    
+    .index-btn {
+      background-color: var(--fun-color);
+      color: white;
+      border: none;
+      padding: 10px 25px;
+      border-radius: 30px;
+      cursor: pointer;
+      font-weight: bold;
+      margin-top: 20px;
+      transition: all 0.3s;
+    }
+    
+    .index-btn:hover {
+      background-color: #3a0ca3;
+      transform: translateY(-3px);
+    }
+    
+    @media (max-width: 768px) {
+      .memory-game {
+        grid-template-columns: repeat(3, 1fr);
+      }
+      
+      .front-face, .back-face {
+        font-size: 1.2rem;
+      }
+      
+      .hints-list {
+        grid-template-columns: 1fr;
+      }
+      
+      .start-screen h2 {
+        font-size: 2rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Pantalla de inicio -->
+  <div class="start-screen" id="startScreen">
+    <h2>¡Bienvenido al Juego de Memoria de Inglés!<br>¿Estás listo para aprender?</h2>
+    <button class="start-btn" id="startButton">EMPEZAR</button>
+    <button class="index-btn" id="indexButton">Inicio</button>
+  </div>
+
+  <header>
+    <div class="header-container">
+      <div class="logo-container">
+        <img src="logo\upscalemedia-transformed.png" alt="English Class Logo">
+        <h1>English Class</h1>
+      </div>
+      <nav>
+        <ul>
+          <li><a href="#" id="homeLink">Inicio</a></li>
+          <li><a href="#" class="active">Cursos</a></li>
+          <li><a href="#">Juegos</a></li>
+          <li><a href="#">Videos</a></li>
+          <li><a href="#">Contacto</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <h1 class="section-title">Inglés Básico</h1>
+    
+    <div class="game-container">
+      <div class="game-header">
+        <h2>🎮 Juego de Memoria: Empareja las Palabras</h2>
+        <p>Encuentra las parejas de palabras en inglés y español. ¡Practica tu vocabulario mientras juegas!</p>
+      </div>
+      
+      <div class="game-stats">
+        <div>Pares: <span id="pairs">0</span>/8</div>
+        <div>Intentos: <span id="attempts">0</span></div>
+        <div>Tiempo: <span id="time">00:00</span></div>
+      </div>
+      
+      <div class="memory-game" id="memory-game">
+        <!-- Las cartas se generarán con JavaScript -->
+      </div>
+      
+      <div class="hints-container">
+        <h3>📚 Pistas de Vocabulario</h3>
+        <div class="hints-list" id="hints-list">
+          <!-- Las pistas se generarán con JavaScript -->
+        </div>
+      </div>
+      
+      <div class="game-controls">
+        <button class="game-btn" id="newGameBtn">Nuevo Juego</button>
+        <button class="game-btn" id="hintBtn">Pista</button>
+        <button class="game-btn" id="soundBtn">🔊 Sonido</button>
+        <button class="game-btn" id="voiceBtn">🎤 Iniciar con Voz</button>
+      </div>
+    </div>
+    
+    <div class="celebration" id="celebration">
+      <h2>¡Felicidades! 🎉<br>Completaste el juego</h2>
+      <button class="game-btn" id="playAgainBtn">Jugar de nuevo</button>
+    </div>
+  </main>
+
+  <footer>
+    <div class="footer-content">
+      <div class="footer-logo">
+        <img src="logo\upscalemedia-transformed.png" alt="English Class Logo">
+        <h2>English Class</h2>
+      </div>
+      <p>Aprende inglés de la forma más divertida</p>
+      <div class="social-links">
+        <a href="#"><img src="https://cdn-icons-png.flaticon.com/512/2111/2111463.png" width="24" alt="Instagram"></a>
+        <a href="#"><img src="https://cdn-icons-png.flaticon.com/512/733/733579.png" width="24" alt="Twitter"></a>
+        <a href="#"><img src="https://cdn-icons-png.flaticon.com/512/1384/1384060.png" width="24" alt="YouTube"></a>
+        <a href="#"><img src="https://cdn-icons-png.flaticon.com/512/2504/2504903.png" width="24" alt="TikTok"></a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Sonidos -->
+  <audio id="flipSound" src="https://www.soundjay.com/human/sounds/card-flip-01.mp3"></audio>
+  <audio id="matchSound" src="https://www.soundjay.com/buttons/sounds/button-21.mp3"></audio>
+  <audio id="winSound" src="https://www.soundjay.com/human/sounds/applause-01.mp3"></audio>
+  <audio id="hintSound" src="https://www.soundjay.com/buttons/sounds/button-10.mp3"></audio>
+  <audio id="startSound" src="https://www.soundjay.com/buttons/sounds/button-09.mp3"></audio>
+  <audio id="voiceSound" src="https://www.soundjay.com/human/sounds/game-start-01.mp3"></audio>
+  <audio id="beginSound" src="https://www.soundjay.com/human/sounds/lets-play-01.mp3"></audio>
+    <script>
+    // Variables del juego
+    let hasFlippedCard = false;
+    let lockBoard = false;
+    let firstCard, secondCard;
+    let pairsMatched = 0;
+    let attempts = 0;
+    let seconds = 0;
+    let timer;
+    let soundOn = true;
+    
+    // Banco de palabras
+    const wordBank = [
+      { word: "Hello", translation: "Hola", emoji: "👋", hint: "Saludo común" },
+      { word: "Goodbye", translation: "Adiós", emoji: "👋", hint: "Despedida" },
+      { word: "Thank you", translation: "Gracias", emoji: "🙏", hint: "Expresión de gratitud" },
+      { word: "Please", translation: "Por favor", emoji: "🥺", hint: "Palabra mágica para pedir algo" },
+      { word: "Sorry", translation: "Lo siento", emoji: "😔", hint: "Pedir disculpas" },
+      { word: "Friend", translation: "Amigo", emoji: "👫", hint: "Persona cercana" },
+      { word: "Family", translation: "Familia", emoji: "👨‍👩‍👧‍👦", hint: "Padres, hermanos, etc." },
+      { word: "Love", translation: "Amor", emoji: "❤️", hint: "Sentimiento fuerte" },
+      { word: "School", translation: "Escuela", emoji: "🏫", hint: "Lugar de aprendizaje" },
+      { word: "Book", translation: "Libro", emoji: "📖", hint: "Contiene páginas para leer" },
+      { word: "Teacher", translation: "Profesor", emoji: "👩‍🏫", hint: "Persona que enseña" },
+      { word: "Student", translation: "Estudiante", emoji: "🧑‍🎓", hint: "Persona que aprende" }
+    ];
+    
+    let currentCards = [];
+    
+    // Elementos del DOM
+    const startScreen = document.getElementById('startScreen');
+    const startButton = document.getElementById('startButton');
+    const indexButton = document.getElementById('indexButton');
+    const homeLink = document.getElementById('homeLink');
+    const newGameBtn = document.getElementById('newGameBtn');
+    const hintBtn = document.getElementById('hintBtn');
+    const soundBtn = document.getElementById('soundBtn');
+    const voiceBtn = document.getElementById('voiceBtn');
+    const playAgainBtn = document.getElementById('playAgainBtn');
+
+    // Event Listeners
+    startButton.addEventListener('click', beginGame);
+    indexButton.addEventListener('click', goToIndex);
+    homeLink.addEventListener('click', (e) => {
+      e.preventDefault();
+      goToIndex();
+    });
+    newGameBtn.addEventListener('click', startGame);
+    hintBtn.addEventListener('click', showHint);
+    soundBtn.addEventListener('click', toggleSound);
+    voiceBtn.addEventListener('click', startGameWithVoice);
+    playAgainBtn.addEventListener('click', hideCelebration);
+
+    // Función para comenzar el juego
+    function beginGame() {
+      startScreen.style.display = 'none';
+      startGame();
+      
+      if (soundOn) {
+        const beginSound = document.getElementById('beginSound');
+        beginSound.currentTime = 0;
+        beginSound.play();
+      }
+    }
+
+    // Función para ir a la página de inicio
+    function goToIndex() {
+      alert("Redirigiendo a la página de inicio...");
+      // window.location.href = "index.html";
+    }
+
+    // Seleccionar cartas aleatorias
+    function selectRandomCards() {
+      const shuffled = [...wordBank].sort(() => 0.5 - Math.random());
+      currentCards = shuffled.slice(0, 8);
+      return [...currentCards, ...currentCards].sort(() => 0.5 - Math.random());
+    }
+
+    // Crear las cartas del juego
+    function createCards() {
+      const gameBoard = document.getElementById('memory-game');
+      gameBoard.innerHTML = '';
+      
+      const gameCards = selectRandomCards();
+      
+      gameCards.forEach((card, index) => {
+        const memoryCard = document.createElement('div');
+        memoryCard.classList.add('memory-card');
+        memoryCard.dataset.word = card.word;
+        memoryCard.dataset.index = index;
+        
+        memoryCard.innerHTML = `
+          <div class="front-face">
+            ${card.word}<br>
+            <span style="font-size: 2rem;">${card.emoji}</span>
+          </div>
+          <div class="back-face">
+            ?<br>
+            <span style="font-size: 2rem;">❓</span>
+          </div>
+        `;
+        
+        memoryCard.addEventListener('click', flipCard);
+        gameBoard.appendChild(memoryCard);
+      });
+      
+      updateHints();
+    }
+
+    // Actualizar lista de pistas
+    function updateHints() {
+      const hintsList = document.getElementById('hints-list');
+      hintsList.innerHTML = '';
+      
+      currentCards.forEach(card => {
+        const hintItem = document.createElement('div');
+        hintItem.classList.add('hint-item');
+        hintItem.innerHTML = `<strong>${card.word}:</strong> ${card.hint}`;
+        hintsList.appendChild(hintItem);
+      });
+    }
+
+    // Voltear carta
+    function flipCard() {
+      if (lockBoard || this === firstCard) return;
+      
+      if (soundOn) {
+        document.getElementById('flipSound').currentTime = 0;
+        document.getElementById('flipSound').play();
+      }
+      
+      this.classList.add('flip');
+      
+      if (!hasFlippedCard) {
+        hasFlippedCard = true;
+        firstCard = this;
+        return;
+      }
+      
+      secondCard = this;
+      attempts++;
+      document.getElementById('attempts').textContent = attempts;
+      checkForMatch();
+    }
+
+    // Comprobar coincidencia
+    function checkForMatch() {
+      const isMatch = firstCard.dataset.word === secondCard.dataset.word;
+      
+      if (isMatch) {
+        disableCards();
+        pairsMatched++;
+        document.getElementById('pairs').textContent = pairsMatched;
+        
+        if (soundOn) {
+          document.getElementById('matchSound').play();
+        }
+        
+        if (pairsMatched === currentCards.length) {
+          endGame();
+        }
+      } else {
+        unflipCards();
+      }
+    }
+
+    // Desactivar cartas coincidentes
+    function disableCards() {
+      firstCard.removeEventListener('click', flipCard);
+      secondCard.removeEventListener('click', flipCard);
+      resetBoard();
+    }
+
+    // Volver a voltear cartas no coincidentes
+    function unflipCards() {
+      lockBoard = true;
+      
+      setTimeout(() => {
+        firstCard.classList.remove('flip');
+        secondCard.classList.remove('flip');
+        resetBoard();
+      }, 1000);
+    }
+
+    // Reiniciar tablero
+    function resetBoard() {
+      [hasFlippedCard, lockBoard] = [false, false];
+      [firstCard, secondCard] = [null, null];
+    }
+
+    // Iniciar nuevo juego
+    function startGame() {
+      resetGameStats();
+      createCards();
+      startTimer();
+      
+      if (soundOn) {
+        const startSound = document.getElementById('startSound');
+        startSound.currentTime = 0;
+        startSound.play();
+      }
+    }
+
+    // Iniciar juego con voz
+    function startGameWithVoice() {
+      if (soundOn) {
+        document.getElementById('voiceSound').play();
+        setTimeout(startGame, 1500);
+      } else {
+        startGame();
+      }
+    }
+
+    // Reiniciar estadísticas
+    function resetGameStats() {
+      pairsMatched = 0;
+      attempts = 0;
+      seconds = 0;
+      document.getElementById('pairs').textContent = '0';
+      document.getElementById('attempts').textContent = '0';
+      document.getElementById('time').textContent = '00:00';
+      clearInterval(timer);
+    }
+
+    // Iniciar temporizador
+    function startTimer() {
+      timer = setInterval(() => {
+        seconds++;
+        const minutes = Math.floor(seconds / 60);
+        const remainingSeconds = seconds % 60;
+        document.getElementById('time').textContent = 
+          `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
+      }, 1000);
+    }
+
+    // Finalizar juego
+    function endGame() {
+      clearInterval(timer);
+      
+      if (soundOn) {
+        const winSound = document.getElementById('winSound');
+        winSound.currentTime = 0;
+        winSound.play();
+      }
+      
+      showCelebration();
+    }
+
+    // Mostrar celebración
+    function showCelebration() {
+      const celebration = document.getElementById('celebration');
+      celebration.style.display = 'flex';
+      
+      for (let i = 0; i < 100; i++) {
+        createConfetti();
+      }
+    }
+
+    // Ocultar celebración
+    function hideCelebration() {
+      document.getElementById('celebration').style.display = 'none';
+      startGame();
+    }
+
+    // Crear confeti
+    function createConfetti() {
+      const confetti = document.createElement('div');
+      confetti.classList.add('confetti');
+      confetti.style.left = Math.random() * 100 + 'vw';
+      confetti.style.backgroundColor = getRandomColor();
+      confetti.style.width = Math.random() * 10 + 5 + 'px';
+      confetti.style.height = Math.random() * 10 + 5 + 'px';
+      
+      document.getElementById('celebration').appendChild(confetti);
+      
+      setTimeout(() => {
+        confetti.remove();
+      }, 5000);
+    }
+
+    // Obtener color aleatorio
+    function getRandomColor() {
+      const colors = ['#f72585', '#4361ee', '#4cc9f0', '#3a0ca3', '#7209b7'];
+      return colors[Math.floor(Math.random() * colors.length)];
+    }
+
+    // Mostrar pista
+    function showHint() {
+      if (soundOn) {
+        document.getElementById('hintSound').play();
+      }
+      
+      const unflippedCards = Array.from(document.querySelectorAll('.memory-card:not(.flip)'));
+      if (unflippedCards.length > 0) {
+        const randomCard = unflippedCards[Math.floor(Math.random() * unflippedCards.length)];
+        randomCard.classList.add('flip');
+        
+        setTimeout(() => {
+          randomCard.classList.remove('flip');
+        }, 1000);
+      }
+    }
+
+    // Alternar sonido
+    function toggleSound() {
+      soundOn = !soundOn;
+      soundBtn.textContent = soundOn ? '🔊 Sonido' : '🔇 Silencio';
+    }
+  </script>
+  
+  <header>
+    <div class="header-container">
+      <div class="logo-container">
+        <img src="logo\upscalemedia-transformed.png" alt="English Class Logo">
+        <h1>English Class</h1>
+      </div>
+      <nav>
+        <ul>
+          <li><a href="index.html" onclick="playNavSound()">Inicio</a></li>
+          <li><a href="cursos.html" onclick="playNavSound()">Cursos</a></li>
+          <li><a href="games.html" onclick="playNavSound()">Juegos</a></li>
+          <li><a href="videos.html" onclick="playNavSound()">Videos</a></li>
+          <li><a href="contacto.html" onclick="playNavSound()">Contacto</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+</body>
+</html>
