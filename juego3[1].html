@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hangman: English Class Game</title>
+    <!-- Chosen Palette: Custom Fun & Professional -->
+    <!-- Application Structure Plan: The application is a single-page game with three states: level selection, active game, and end-game modal. The structure is designed to guide the user from choosing a difficulty to playing the game, and finally seeing their result, all within the same view without page reloads. This provides a smooth, uninterrupted user experience ideal for a simple game. -->
+    <!-- Visualization & Content Choices: The core visualization is the hangman drawing on an HTML Canvas, which updates based on incorrect guesses (Goal: Show Progress/State). The word display uses HTML spans, dynamically filled via JS (Goal: Show Progress). The keyboard is interactive buttons (Goal: User Input). This approach avoids complex libraries and keeps the game lightweight and fast, focusing on clear, direct user interaction. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        :root {
+            --primary-color: #4361ee;
+            --secondary-color: #3a0ca3;
+            --accent-color: #f72585;
+            --light-color: #ffffff;
+            --text-color: #2b2d42;
+            --fun-color: #4cc9f0;
+        }
+
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap');
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            line-height: 1.6;
+            color: var(--text-color);
+            background-color: #f8f9fa;
+        }
+
+       .btn-style {
+            display: inline-block;
+            background-color: var(--accent-color);
+            color: var(--light-color);
+            padding: 15px 40px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 1.1rem;
+            transition: all 0.4s ease;
+            box-shadow: 0 8px 15px rgba(247, 37, 133, 0.3);
+            position: relative;
+            overflow: hidden;
+            border: none;
+            cursor: pointer;
+        }
+
+       .btn-style:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 20px rgba(247, 37, 133, 0.4);
+            background-color: #ff0676;
+        }
+
+       .btn-style:active {
+            transform: translateY(-2px);
+        }
+
+       .btn-style::after {
+            content: "";
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 5px;
+            height: 5px;
+            background: rgba(255, 255, 255, 0.5);
+            opacity: 0;
+            border-radius: 100%;
+            transform: scale(1, 1) translate(-50%, -50%);
+            transform-origin: 50% 50%;
+        }
+        
+       .btn-style:focus:not(:active)::after {
+            animation: ripple 1s ease-out;
+        }
+
+        @keyframes ripple {
+            0% { transform: scale(0, 0); opacity: 0.5; }
+            100% { transform: scale(20, 20); opacity: 0; }
+        }
+
+       .section-title {
+            text-align: center;
+            margin-bottom: 2rem;
+            color: var(--secondary-color);
+            font-size: 2.2rem;
+            position: relative;
+            display: inline-block;
+        }
+
+       .section-title::after {
+            content: "";
+            position: absolute;
+            bottom: -10px;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg, var(--accent-color), var(--fun-color));
+            border-radius: 2px;
+        }
+
+       .level-card {
+            background-color: var(--light-color);
+            border-radius: 15px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+            transition: all 0.4s ease;
+            border-top: 5px solid var(--accent-color);
+            overflow: hidden;
+            text-align: center;
+            padding: 25px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        
+       .level-card:hover {
+            transform: translateY(-10px) scale(1.02);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
+        }
+
+       .level-card h3 {
+            color: var(--secondary-color);
+            margin-bottom: 15px;
+            font-size: 1.4rem;
+        }
+
+       .level-card p {
+            color: #5e5e5e;
+            margin-bottom: 20px;
+        }
+
+       .keyboard-btn {
+            background-color: #ffffff;
+            color: var(--text-color);
+            border: 2px solid var(--primary-color);
+            border-radius: 8px;
+            font-weight: bold;
+            transition: all 0.2s ease-in-out;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+       .keyboard-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+            background-color: #e5e7eb;
+            color: #9ca3af;
+        }
+       .keyboard-btn:not(:disabled):hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            background-color: var(--fun-color);
+            color: var(--light-color);
+        }
+       .keyboard-btn.correct {
+            background-color: #10b981;
+            color: white;
+            border: none;
+        }
+       .keyboard-btn.incorrect {
+            background-color: #ef4444;
+            color: white;
+            border: none;
+        }
+       .letter-placeholder {
+            border-bottom: 3px solid var(--secondary-color);
+            width: 2rem;
+            height: 2.5rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            margin: 0 0.25rem;
+            color: var(--text-color);
+            font-weight: bold;
+        }
+        @media (min-width: 640px) {
+           .letter-placeholder {
+                width: 2.5rem;
+                height: 3rem;
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body class="flex flex-col items-center justify-start min-h-screen p-4 bg-[#f8f9fa]">
+    <div class="w-full max-w-4xl">
+        <header class="py-4">
+            <a href="games.html" class="inline-flex items-center gap-2 text-slate-600 hover:text-indigo-700 transition-colors duration-300 group">
+                <div class="bg-white group-hover:bg-indigo-100 rounded-full p-2 transition-colors duration-300 shadow-sm border border-slate-200">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-slate-500 group-hover:text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                    </svg>
+                </div>
+                <span class="font-medium">Volver a juegos</span>
+            </a>
+        </header>
+    </div>
+
+    <!-- Tone.js para generar sonidos sin enlaces externos -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+
+    <div id="app-container" class="w-full max-w-4xl mx-auto p-4 md:p-8 bg-white rounded-2xl shadow-xl">
+
+        <div id="level-selection" class="text-center">
+            <h1 class="section-title">El Ahorcado</h1>
+            <p class="text-lg text-slate-500 mb-8">¡Elige tu nivel para empezar a aprender!</p>
+            <div class="grid md:grid-cols-3 gap-6">
+                <div class="level-card">
+                    <h3 class="text-xl font-bold">Nivel Básico</h3>
+                    <p class="text-slate-600 mb-4">Palabras simples y cortas de 3 a 5 letras. ¡Ideal para principiantes!</p>
+                    <button onclick="startGame('easy')" class="btn-style">Comenzar</button>
+                </div>
+                <div class="level-card">
+                    <h3 class="text-xl font-bold">Nivel Intermedio</h3>
+                    <p class="text-slate-600 mb-4">Palabras comunes de 6 a 8 letras. ¡Pon a prueba tu vocabulario!</p>
+                    <button onclick="startGame('medium')" class="btn-style">Comenzar</button>
+                </div>
+                <div class="level-card">
+                    <h3 class="text-xl font-bold">Nivel Avanzado</h3>
+                    <p class="text-slate-600 mb-4">Palabras complejas de 9 o más letras. ¡Desafía tus conocimientos!</p>
+                    <button onclick="startGame('hard')" class="btn-style">Comenzar</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="game-container" class="hidden">
+            <h1 class="section-title">Encuentra la Palabra</h1>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div class="bg-slate-50 p-6 rounded-2xl shadow-inner flex flex-col items-center justify-between">
+                     <h2 id="category-display" class="text-xl font-semibold text-slate-600 mb-4 bg-slate-200 px-4 py-2 rounded-full"></h2>
+                    <canvas id="hangman-canvas" width="300" height="350"></canvas>
+                    <div>
+                        <p class="text-center text-slate-500 mb-2">Errores</p>
+                        <div class="w-64 bg-slate-200 rounded-full h-4">
+                            <div id="progress-bar" class="bg-rose-500 h-4 rounded-full transition-all duration-300" style="width: 0%"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex flex-col items-center justify-between">
+                    <div id="word-display" class="flex flex-wrap justify-center mb-8"></div>
+                    <div id="keyboard" class="grid grid-cols-7 sm:grid-cols-9 gap-2 w-full max-w-md"></div>
+                </div>
+            </div>
+             <div class="flex justify-center mt-8">
+                <button onclick="showLevelSelection()" class="btn-style bg-gray-500 hover:bg-gray-600 px-8 py-3">Cambiar Nivel</button>
+            </div>
+        </div>
+
+        <div id="modal" class="hidden fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center p-4 z-50">
+            <div id="modal-content" class="bg-white text-center p-8 rounded-2xl shadow-2xl transform transition-all scale-95 duration-300">
+                <h2 id="modal-title" class="text-4xl font-bold mb-4"></h2>
+                <p id="modal-text" class="text-lg text-slate-600 mb-2"></p>
+                <p id="comprehension-text" class="text-lg font-semibold mb-6"></p>
+                <div class="flex justify-center gap-4">
+                    <button id="modal-new-game-btn" class="btn-style">Jugar de Nuevo</button>
+                    <button onclick="showLevelSelection()" class="btn-style bg-gray-500 hover:bg-gray-600">Cambiar Nivel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const wordsByLevel = {
+            easy: [
+                { word: 'CAT', category: 'Animal' }, { word: 'SUN', category: 'Nature' }, { word: 'BOOK', category: 'Object' }, { word: 'DOG', category: 'Animal' },
+                { word: 'TREE', category: 'Nature' }, { word: 'BIRD', category: 'Animal' }, { word: 'FISH', category: 'Animal' }, { word: 'CAR', category: 'Object' },
+                { word: 'BALL', category: 'Toy' }, { word: 'HAT', category: 'Clothing' }, { word: 'BED', category: 'Furniture' }, { word: 'LEG', category: 'Body' },
+                { word: 'ARM', category: 'Body' }, { word: 'HAND', category: 'Body' }, { word: 'FOOD', category: 'Food' }, { word: 'TEA', category: 'Drink' },
+                { word: 'ICE', category: 'Nature' }, { word: 'BOX', category: 'Object' }, { word: 'CUP', category: 'Object' }, { word: 'PEN', category: 'Object' }
+            ],
+            medium: [
+                { word: 'PENCIL', category: 'School' }, { word: 'ORANGE', category: 'Fruit' }, { word: 'GUITAR', category: 'Music' }, { word: 'WATER', category: 'Nature' },
+                { word: 'SCHOOL', category: 'Place' }, { word: 'CHAIR', category: 'Furniture' }, { word: 'SPOON', category: 'Kitchen' }, { word: 'TABLE', category: 'Furniture' },
+                { word: 'PANTS', category: 'Clothing' }, { word: 'SOCKS', category: 'Clothing' }, { word: 'SHIRT', category: 'Clothing' }, { word: 'COFFEE', category: 'Drink' },
+                { word: 'BREAD', category: 'Food' }, { word: 'PHONE', category: 'Technology' }, { word: 'RIVER', category: 'Nature' }, { word: 'OCEAN', category: 'Nature' },
+                { word: 'JUMPING', category: 'Action' }, { word: 'READING', category: 'Action' }, { word: 'WRITING', category: 'Action' }, { word: 'DRIVING', category: 'Action' }
+            ],
+            hard: [
+                { word: 'ELEPHANT', category: 'Animal' }, { word: 'COMPUTER', category: 'Technology' }, { word: 'KNOWLEDGE', category: 'Concept' }, { word: 'UNIVERSE', category: 'Space' },
+                { word: 'CHOCOLATE', category: 'Food' }, { word: 'KEYBOARD', category: 'Technology' }, { word: 'TELEVISION', category: 'Technology' }, { word: 'ARCHITECTURE', category: 'Profession' },
+                { word: 'INNOVATION', category: 'Concept' }, { word: 'CHALLENGING', category: 'Adjective' }, { word: 'CONGRATULATE', category: 'Verb' }, { word: 'ENVIRONMENT', category: 'Nature' },
+                { word: 'COMMUNICATION', category: 'Concept' }, { word: 'INTELLIGENT', category: 'Adjective' }, { word: 'TRANSFORMATION', category: 'Concept' }, { word: 'INTERNET', category: 'Technology' },
+                { word: 'DICTIONARY', category: 'Object' }, { word: 'EUCALYPTUS', category: 'Nature' }, { word: 'SYMPHONY', category: 'Music' }, { word: 'DEVELOPMENT', category: 'Concept' }
+            ]
+        };
+
+        const availableWords = {};
+        let currentLevel;
+        let selectedWord;
+        let selectedCategory;
+        let guessedLetters;
+        let wrongGuesses;
+        const maxGuesses = 6;
+        const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+
+        const levelSelectionEl = document.getElementById('level-selection');
+        const gameContainerEl = document.getElementById('game-container');
+        const wordDisplayEl = document.getElementById('word-display');
+        const keyboardEl = document.getElementById('keyboard');
+        const canvas = document.getElementById('hangman-canvas');
+        const ctx = canvas.getContext('2d');
+        const progressBar = document.getElementById('progress-bar');
+        const categoryDisplay = document.getElementById('category-display');
+        
+        const modal = document.getElementById('modal');
+        const modalContent = document.getElementById('modal-content');
+        const modalTitle = document.getElementById('modal-title');
+        const modalText = document.getElementById('modal-text');
+        const modalNewGameBtn = document.getElementById('modal-new-game-btn');
+        const comprehensionText = document.getElementById('comprehension-text');
+
+        // Inicializar los generadores de sonido de Tone.js
+        const synthCorrect = new Tone.Synth().toDestination();
+        const synthIncorrect = new Tone.MembraneSynth({ pitchDecay: 0.05, octave: 2, envelope: { attack: 0.001, decay: 0.4, sustain: 0.01, release: 1.4, attackCurve: 'exponential' } }).toDestination();
+        const synthWin = new Tone.MembraneSynth({ pitchDecay: 0.05, octave: 3, envelope: { attack: 0.001, decay: 0.8, sustain: 0.01, release: 2, attackCurve: 'exponential' } }).toDestination();
+        const synthLose = new Tone.MembraneSynth({ pitchDecay: 0.05, octave: 1, envelope: { attack: 0.001, decay: 0.8, sustain: 0.01, release: 2, attackCurve: 'exponential' } }).toDestination();
+
+        function playSound(type) {
+            Tone.start();
+            switch(type) {
+                case 'correct':
+                    synthCorrect.triggerAttackRelease("C5", "8n");
+                    break;
+                case 'incorrect':
+                    synthIncorrect.triggerAttackRelease("C1", "4n");
+                    break;
+                case 'win':
+                    synthWin.triggerAttackRelease("C6", "4n");
+                    break;
+                case 'lose':
+                    synthLose.triggerAttackRelease("C1", "4n");
+                    break;
+            }
+        }
+
+        function startGame(level) {
+            currentLevel = level;
+            // Si no hay palabras disponibles para este nivel o es la primera vez, reinicia la lista
+            if (!availableWords[level] || availableWords[level].length === 0) {
+                availableWords[level] = [...wordsByLevel[level]];
+            }
+
+            // Si aún después del reinicio no hay palabras, es un problema
+            if (availableWords[level].length === 0) {
+                return;
+            }
+
+            const randomIndex = Math.floor(Math.random() * availableWords[level].length);
+            const wordObj = availableWords[level].splice(randomIndex, 1)[0];
+            selectedWord = wordObj.word.toUpperCase();
+            selectedCategory = wordObj.category;
+
+            guessedLetters = [];
+            wrongGuesses = 0;
+            
+            levelSelectionEl.classList.add('hidden');
+            gameContainerEl.classList.remove('hidden');
+            modal.classList.add('hidden');
+
+            setupGame();
+        }
+        
+        function setupGame() {
+            createKeyboard();
+            renderWord();
+            drawHangman();
+            updateProgressBar();
+            categoryDisplay.textContent = `Pista: ${selectedCategory}`;
+        }
+        
+        function showLevelSelection() {
+            gameContainerEl.classList.add('hidden');
+            levelSelectionEl.classList.remove('hidden');
+            modal.classList.add('hidden');
+        }
+
+        function renderWord() {
+            wordDisplayEl.innerHTML = selectedWord
+               .split('')
+               .map(letter => `<span class="letter-placeholder">${guessedLetters.includes(letter) ? letter : ''}</span>`)
+               .join('');
+            
+            const isWinner = selectedWord.split('').every(letter => guessedLetters.includes(letter));
+            if (isWinner) {
+                setTimeout(() => showModal(true), 500);
+            }
+        }
+
+        function createKeyboard() {
+            keyboardEl.innerHTML = '';
+            alphabet.forEach(letter => {
+                const btn = document.createElement('button');
+                btn.textContent = letter;
+                btn.className = 'keyboard-btn p-2 sm:p-3 rounded-lg shadow-md';
+                btn.onclick = () => handleGuess(letter);
+                keyboardEl.appendChild(btn);
+            });
+        }
+
+        function handleGuess(letter) {
+            if (guessedLetters.includes(letter) || wrongGuesses >= maxGuesses) return;
+
+            guessedLetters.push(letter);
+            const letterBtn = Array.from(keyboardEl.children).find(btn => btn.textContent === letter);
+            letterBtn.disabled = true;
+
+            if (selectedWord.includes(letter)) {
+                letterBtn.classList.add('correct');
+                playSound('correct');
+                renderWord();
+            } else {
+                letterBtn.classList.add('incorrect');
+                wrongGuesses++;
+                playSound('incorrect');
+                drawHangman();
+                updateProgressBar();
+                if (wrongGuesses >= maxGuesses) {
+                    setTimeout(() => showModal(false), 500);
+                }
+            }
+        }
+        
+        function updateProgressBar() {
+            const percentage = (wrongGuesses / maxGuesses) * 100;
+            progressBar.style.width = `${percentage}%`;
+        }
+
+        function calculateComprehensionLevel(wrongCount) {
+            if (wrongCount <= 1) return { text: 'Excelente', color: '#10b981' };
+            if (wrongCount <= 3) return { text: 'Bueno', color: '#2563eb' };
+            if (wrongCount <= 5) return { text: 'Regular', color: '#f59e0b' };
+            return { text: 'Necesitas más práctica', color: '#dc2626' };
+        }
+
+        function drawHangman() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.strokeStyle = '#3a0ca3'; /* var(--secondary-color) */
+            ctx.lineWidth = 4;
+            ctx.lineCap = 'round';
+
+            // Dibuja el poste
+            ctx.beginPath();
+            ctx.moveTo(40, 330);
+            ctx.lineTo(120, 330);
+            ctx.moveTo(80, 330);
+            ctx.lineTo(80, 50);
+            ctx.lineTo(200, 50);
+            ctx.lineTo(200, 90);
+            ctx.stroke();
+
+            // Dibuja las partes del cuerpo según los errores
+            if (wrongGuesses > 0) { // Cabeza
+                ctx.beginPath();
+                ctx.arc(200, 120, 30, 0, Math.PI * 2);
+                ctx.stroke();
+            }
+            if (wrongGuesses > 1) { // Cuerpo
+                ctx.beginPath();
+                ctx.moveTo(200, 150);
+                ctx.lineTo(200, 230);
+                ctx.stroke();
+            }
+            if (wrongGuesses > 2) { // Brazo izquierdo
+                ctx.beginPath();
+                ctx.moveTo(200, 170);
+                ctx.lineTo(150, 220);
+                ctx.stroke();
+            }
+            if (wrongGuesses > 3) { // Brazo derecho
+                ctx.beginPath();
+                ctx.moveTo(200, 170);
+                ctx.lineTo(250, 220);
+                ctx.stroke();
+            }
+            if (wrongGuesses > 4) { // Pierna izquierda
+                ctx.beginPath();
+                ctx.moveTo(200, 230);
+                ctx.lineTo(150, 280);
+                ctx.stroke();
+            }
+            if (wrongGuesses > 5) { // Pierna derecha
+                ctx.beginPath();
+                ctx.moveTo(200, 230);
+                ctx.lineTo(250, 280);
+                ctx.stroke();
+            }
+        }
+        
+        function showModal(isWinner) {
+            modal.classList.remove('hidden');
+            setTimeout(() => modalContent.classList.remove('scale-95'), 10);
+            
+            const level = calculateComprehensionLevel(wrongGuesses);
+            comprehensionText.textContent = `Nivel de comprensión: ${level.text}`;
+            comprehensionText.style.color = level.color;
+
+            if (isWinner) {
+                modalTitle.textContent = '¡Ganaste! 🎉';
+                modalTitle.style.color = '#10b981';
+                modalText.textContent = `¡Excelente! Has adivinado la palabra: ${selectedWord}`;
+                playSound('win');
+            } else {
+                modalTitle.textContent = 'Juego Terminado 😔';
+                modalTitle.style.color = '#dc2626';
+                modalText.textContent = `La palabra correcta era: ${selectedWord}`;
+                wordDisplayEl.innerHTML = selectedWord
+                   .split('')
+                   .map(letter => `<span class="letter-placeholder" style="color:#ef4444;">${letter}</span>`)
+                   .join('');
+                playSound('lose');
+            }
+            modalNewGameBtn.onclick = () => startGame(currentLevel);
+       
+ }
+    </script>
+</body>
+</html>
